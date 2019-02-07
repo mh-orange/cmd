@@ -16,14 +16,18 @@ package cmd
 
 import (
 	"io"
+	"sync"
 )
 
 type multiWriter struct {
 	writers []io.Writer
+	mu      sync.Mutex
 }
 
 func (mw *multiWriter) add(writer io.Writer) {
+	mw.mu.Lock()
 	mw.writers = append(mw.writers, writer)
+	mw.mu.Unlock()
 }
 
 func (mw *multiWriter) copy(reader io.Reader) error {
@@ -32,6 +36,8 @@ func (mw *multiWriter) copy(reader io.Reader) error {
 }
 
 func (mw *multiWriter) close() (err error) {
+	mw.mu.Lock()
+	defer mw.mu.Unlock()
 	for _, writer := range mw.writers {
 		if closer, ok := writer.(io.Closer); ok {
 			err = closer.Close()
@@ -47,6 +53,8 @@ func (mw *multiWriter) Close() (err error) {
 	return mw.close()
 }
 func (mw *multiWriter) Write(p []byte) (n int, err error) {
+	mw.mu.Lock()
+	defer mw.mu.Unlock()
 	for _, writer := range mw.writers {
 		n, err = writer.Write(p)
 		if err != nil {

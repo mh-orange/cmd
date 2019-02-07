@@ -152,9 +152,13 @@ func (tp *testProcess) Start() error {
 	if tp.startErr == nil {
 		tp.wg.Add(1)
 		go func() {
-			tp.stdoutWriter.Write(tp.stdout)
+			if len(tp.stdout) > 0 {
+				tp.stdoutWriter.Write(tp.stdout)
+			}
 			tp.stdoutWriter.Close()
-			tp.stderrWriter.Write(tp.stderr)
+			if len(tp.stderr) > 0 {
+				tp.stderrWriter.Write(tp.stderr)
+			}
 			tp.stderrWriter.Close()
 			tp.wg.Done()
 		}()
