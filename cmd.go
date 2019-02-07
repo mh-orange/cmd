@@ -150,12 +150,16 @@ func (tp *testProcess) AppendArgs(args ...string) {}
 
 func (tp *testProcess) Start() error {
 	if tp.startErr == nil {
-		tp.wg.Add(1)
+		tp.wg.Add(2)
 		go func() {
 			if len(tp.stdout) > 0 {
 				tp.stdoutWriter.Write(tp.stdout)
 			}
 			tp.stdoutWriter.Close()
+			tp.wg.Done()
+		}()
+
+		go func() {
 			if len(tp.stderr) > 0 {
 				tp.stderrWriter.Write(tp.stderr)
 			}
