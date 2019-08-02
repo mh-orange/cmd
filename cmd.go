@@ -15,8 +15,10 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 	"os/exec"
+	"strings"
 	"sync"
 )
 
@@ -59,6 +61,17 @@ type process struct {
 
 func (proc *process) AppendArgs(args ...string) {
 	proc.args = append(proc.args, args...)
+}
+
+func (proc *process) String() string {
+	args := []string{}
+	for _, arg := range append(proc.cmd.Args, proc.args...) {
+		if strings.IndexAny(arg, " \t\n\r") >= 0 {
+			arg = fmt.Sprintf("%q", arg)
+		}
+		args = append(args, arg)
+	}
+	return strings.Join(args, " ")
 }
 
 func (proc *process) Start() error {
