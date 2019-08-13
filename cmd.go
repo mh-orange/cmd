@@ -41,6 +41,9 @@ type Process interface {
 	// the OS process has either finished on its own or has been killed
 	Wait() error
 
+	// Stdin sets the process's standard input to the given reader
+	Stdin(io.Reader)
+
 	// Stdout adds the Writer to Stdout.  All Writers added to Stdout will receive all
 	// data that the process writes to Stdout.  This is implemented with an underlying
 	// multi-writer
@@ -101,6 +104,10 @@ func (proc *process) Wait() error {
 	return proc.cmd.Wait()
 }
 
+func (proc *process) Stdin(reader io.Reader) {
+	proc.cmd.Stdin = reader
+}
+
 func (proc *process) Stderr(writer io.Writer) {
 	proc.stderr.add(writer)
 }
@@ -146,6 +153,9 @@ func (cmd *cmd) Process() Process {
 }
 
 type testProcess struct {
+	stdin       []byte
+	stdinReader io.Reader
+
 	stdout       []byte
 	stdoutWriter multiWriter
 
@@ -190,8 +200,9 @@ func (tp *testProcess) Wait() error {
 	return tp.waitErr
 }
 
-func (tp *testProcess) Stderr(writer io.Writer) { tp.stderrWriter.add(writer) }
+func (tp *testProcess) Stdin(reader io.Reader)  { tp.stdinReader = reader }
 func (tp *testProcess) Stdout(writer io.Writer) { tp.stdoutWriter.add(writer) }
+func (tp *testProcess) Stderr(writer io.Writer) { tp.stderrWriter.add(writer) }
 
 // TestCmd is useful for mocking commands without actually executing
 // anything
