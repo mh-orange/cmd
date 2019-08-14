@@ -25,6 +25,9 @@ import (
 // Process is an instance of a command.  A process is not initially
 // running and must be started by means of the Start function
 type Process interface {
+	// Args will return the current argument list
+	Args() []string
+
 	// AppendArgs will add arguments to the end of the argument list.  This allows
 	// adding instance specific arguments to the process
 	AppendArgs(args ...string)
@@ -60,6 +63,10 @@ type process struct {
 	stderr multiWriter
 	stdout multiWriter
 	args   []string
+}
+
+func (proc *process) Args() []string {
+	return proc.args
 }
 
 func (proc *process) AppendArgs(args ...string) {
@@ -169,6 +176,7 @@ type testProcess struct {
 	killErr  error
 }
 
+func (tp *testProcess) Args() []string            { return nil }
 func (tp *testProcess) AppendArgs(args ...string) {}
 
 func (tp *testProcess) Start() error {
